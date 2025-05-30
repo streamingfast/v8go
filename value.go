@@ -103,6 +103,10 @@ func NewValue(iso *Isolate, val interface{}) (*Value, error) {
 		rtnVal = &Value{
 			ptr: C.NewValueNumber(iso.ptr, C.double(v)),
 		}
+	case []uint8:
+		rtnVal = &Value{
+			ptr: C.NewUint8Array(iso.ptr, (*C.uchar)(C.CBytes(v)), C.int(len(v))),
+		}
 	case *big.Int:
 		if v.IsInt64() {
 			rtnVal = &Value{
@@ -189,6 +193,12 @@ func (v *Value) BigInt() *big.Int {
 	}
 
 	return b
+}
+
+func (v *Value) Uint8Array() []uint8 {
+	bytes := unsafe.Pointer(C.ValueToUint8Array(v.ptr))
+	defer C.free(bytes)
+	return C.GoBytes(bytes, C.int(C.ValueToArrayLength(v.ptr)))
 }
 
 // Boolean perform the equivalent of `Boolean(value)` in JS. This can never fail.

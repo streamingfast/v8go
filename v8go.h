@@ -204,6 +204,9 @@ extern ValuePtr NewValueUndefined(IsolatePtr iso_ptr);
 extern ValuePtr NewValueInteger(IsolatePtr iso_ptr, int32_t v);
 extern ValuePtr NewValueIntegerFromUnsigned(IsolatePtr iso_ptr, uint32_t v);
 extern RtnValue NewValueString(IsolatePtr iso_ptr, const char* v, int v_length);
+
+extern ValuePtr NewUint8Array(IsolatePtr iso_ptr, const uint8_t* v, int len);
+
 extern ValuePtr NewValueBoolean(IsolatePtr iso_ptr, int v);
 extern ValuePtr NewValueNumber(IsolatePtr iso_ptr, double v);
 extern ValuePtr NewValueBigInt(IsolatePtr iso_ptr, int64_t v);
@@ -213,6 +216,7 @@ extern RtnValue NewValueBigIntFromWords(IsolatePtr iso_ptr,
                                         int word_count,
                                         const uint64_t* words);
 void ValueRelease(ValuePtr ptr);
+
 extern RtnString ValueToString(ValuePtr ptr);
 const uint32_t* ValueToArrayIndex(ValuePtr ptr);
 int ValueToBoolean(ValuePtr ptr);
@@ -224,6 +228,10 @@ uint32_t ValueToUint32(ValuePtr ptr);
 extern ValueBigInt ValueToBigInt(ValuePtr ptr);
 extern RtnValue ValueToObject(ValuePtr ptr);
 int ValueSameValue(ValuePtr ptr, ValuePtr otherPtr);
+
+extern uint8_t* ValueToUint8Array(ValuePtr ptr);
+extern uint64_t ValueToArrayLength(ValuePtr ptr);
+
 int ValueIsUndefined(ValuePtr ptr);
 int ValueIsNull(ValuePtr ptr);
 int ValueIsNullOrUndefined(ValuePtr ptr);

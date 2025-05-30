@@ -824,6 +824,37 @@ ValuePtr NewValueInteger(IsolatePtr iso, int32_t v) {
   return tracked_value(ctx, val);
 }
 
+ValuePtr NewUint8Array(IsolatePtr iso_ptr, const uint8_t *v, int len) {
+    ISOLATE_SCOPE_INTERNAL_CONTEXT(iso_ptr);
+    Local<Context> c = ctx->ptr.Get(iso_ptr);
+    c->Enter();
+
+    ArrayBuffer::Allocator* allocator = iso_ptr->GetArrayBufferAllocator();
+    void* data = allocator->Allocate(len);
+    memcpy(data, v, len);
+
+    std::shared_ptr<BackingStore> backing = ArrayBuffer::NewBackingStore(
+        data, len,
+        [](void* data, size_t length, void* deleter_data) {
+            static_cast<ArrayBuffer::Allocator*>(deleter_data)->Free(data, length);
+        },
+        allocator
+    );
+
+    Local<ArrayBuffer> arbuf = ArrayBuffer::New(iso_ptr, std::move(backing));
+    Local<Uint8Array> arr = Uint8Array::New(arbuf, 0, len);
+
+    m_value* val = new m_value;
+    val->iso = iso_ptr;
+    val->ctx = ctx;
+    val->ptr = Persistent<Value, CopyablePersistentTraits<Value>>(iso_ptr, arr);
+
+    c->Exit();
+    return tracked_value(ctx, val);
+}
+
+
+
 ValuePtr NewValueIntegerFromUnsigned(IsolatePtr iso, uint32_t v) {
   ISOLATE_SCOPE_INTERNAL_CONTEXT(iso);
   m_value* val = new m_value;
@@ -1002,6 +1033,22 @@ RtnString ValueToString(ValuePtr ptr) {
   rtn.data = data;
   rtn.length = src.length();
   return rtn;
+}
+
+uint8_t* ValueToUint8Array(ValuePtr ptr) {
+  LOCAL_VALUE(ptr);
+  MaybeLocal<Uint8Array> array = value.As<Uint8Array>();
+  int length = array.ToLocalChecked()->ByteLength();
+  uint8_t* bytes = new uint8_t[length];
+  memcpy(bytes, array.ToLocalChecked()->Buffer()->GetBackingStore()->Data(), length);
+  return bytes;
+}
+
+// Returns length of the array (number of elements, not number of bytes)
+uint64_t ValueToArrayLength(ValuePtr ptr) {
+  LOCAL_VALUE(ptr);
+  MaybeLocal<TypedArray> array = value.As<TypedArray>();
+  return array.ToLocalChecked()->Length();
 }
 
 uint32_t ValueToUint32(ValuePtr ptr) {
