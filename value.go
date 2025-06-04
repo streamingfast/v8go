@@ -143,6 +143,26 @@ func NewValue(iso *Isolate, val interface{}) (*Value, error) {
 	return rtnVal, nil
 }
 
+func NewUint8Array(ctx *Context, data []byte) (*Value, error) {
+	if ctx == nil {
+		return nil, errors.New("context is nil")
+	}
+	if len(data) == 0 {
+		data = make([]byte, 0)
+	}
+	val := C.NewUint8Array(ctx.iso.ptr, (*C.uchar)(unsafe.Pointer(&data[0])), C.int(len(data)))
+	if val == nil {
+		return nil, errors.New("NewUint8Array returned nil")
+	}
+	return newValue(ctx.iso, val), nil
+}
+
+func newValue(iso *Isolate, ptr C.ValuePtr) *Value {
+	return &Value{
+		ptr: ptr,
+	}
+}
+
 // Format implements the fmt.Formatter interface to provide a custom formatter
 // primarily to output the detail string (for debugging) with `%+v` verb.
 func (v *Value) Format(s fmt.State, verb rune) {
