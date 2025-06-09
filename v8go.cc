@@ -845,6 +845,7 @@ ValuePtr NewUint8Array(IsolatePtr iso_ptr, const uint8_t *v, int len) {
     Local<Uint8Array> arr = Uint8Array::New(arbuf, 0, len);
 
     m_value* val = new m_value;
+    val->id = 0;
     val->iso = iso_ptr;
     val->ctx = ctx;
     val->ptr = Persistent<Value, CopyablePersistentTraits<Value>>(iso_ptr, arr);
